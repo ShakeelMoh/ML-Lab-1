@@ -11,9 +11,47 @@
 
 using namespace std;
 
+bool done = false;//Boolean to check if program finished
+
+//Compute new centroid for each point
+void computeCentroids(vector<int*> points, vector<float*> centroids){
+   
+   int checker = 0; //If checker == 3 it means all 3 centroids are the same as before thus we can stop.
+   for (int i = 0; i < centroids.size(); ++i){//Iterates 3 times
+      int xTotal = 0;
+      int yTotal = 0;
+      int numPts = 0;
+      for (int j = 0; j < points.size(); ++j){//Iterates how many points in cluster x  
+         if (points[j][2] == (i+1)){
+            xTotal += points[j][0];
+            yTotal += points[j][1];
+            numPts ++;
+            
+         }
+      }
+      //cout << "X total: " << xTotal << ": Y total: " << yTotal << " - " << numPts << endl;
+      
+      float newCentroidx = (float)xTotal/(float)numPts;
+      float newCentroidy = (float)yTotal/(float)numPts;
+      
+      //Check if centroid is same as prev calculated one
+      if (newCentroidx == centroids[i][0] && newCentroidy == centroids[i][1]){
+         checker++;
+         if (checker == 3){
+            cout << "Centroids the same. Stop algorithm" << endl;
+            done = true;
+         }
+      }
+      
+      centroids[i][0] = newCentroidx;
+      centroids[i][1] = newCentroidy;
+      //cout << "New centroid " << (i+1) << " is (" << centroids[i][0] << "," << centroids[i][1] << ")" << endl;
+   }
+}
 
 //Loop for each point in dataset. Compute which cluster each point belongs to
 void computeClusters(vector<int*> points, vector<float*> centroids) {
+   
    cout << "Centroid 1: (" << centroids[0][0] << "," << centroids[0][1] << ")" << endl;
    cout << "Centroid 2: (" << centroids[1][0] << "," << centroids[1][1] << ")" << endl;
    cout << "Centroid 3: (" << centroids[2][0] << "," << centroids[2][1] << ")" << endl;
@@ -42,7 +80,7 @@ void computeClusters(vector<int*> points, vector<float*> centroids) {
    for(int i = 0; i < points.size(); ++i){
       //cout << points[i][2] << "\n";
       if(points[i][2] == 1){
-         printClusters += to_string((i+1));
+         printClusters += to_string((i+1)) + " ";
       }
    }
    outputFile << printClusters << endl;
@@ -62,17 +100,19 @@ void computeClusters(vector<int*> points, vector<float*> centroids) {
    for(int i = 0; i < points.size(); ++i){
       //cout << points[i][2] << "\n";
       if(points[i][2] == 3){
-         printClusters += to_string((i+1));
+         printClusters += to_string((i+1)) + " ";
       }
    }
    outputFile << printClusters << endl;
    outputFile << "Centroid (" << centroids[2][0] << "," << centroids[2][1] << ")\n\n";
    outputFile.close();
    
+   computeCentroids(points, centroids);
+   
 }
 
+//Main
 int main (int argc, char *argv[]) {
-   
    
    cout << "K-means clustering simulator" << endl;
    
@@ -117,16 +157,21 @@ int main (int argc, char *argv[]) {
    ofstream outputFile;
    outputFile.open("outputFile.txt");
    outputFile << "K-means Clustering Simulator\n\n";
-   
+   outputFile.close();
    
    int iteration = 1;
    
    //Compute clusters until clusters stay the same
-   outputFile << "Iteration " << iteration << "\n" << endl;
-   outputFile.close();
-   
-   computeClusters(points, centroids);
-   iteration++;
+   while (!done){
+      ofstream outputFile;
+      outputFile.open("outputFile.txt", ofstream::app);
+      
+      outputFile << "Iteration " << iteration << "\n" << endl;
+      outputFile.close();
+      cout << "\nIteration " << iteration << "\n" << endl;
+      computeClusters(points, centroids);
+      iteration++;
+   }
 
    return 0;
 }
